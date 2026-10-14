@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#02030a" />
+  <meta name="description" content="A quiet wish among the stars." />
+  <title>Among the Stars</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; min-height: 100%; }
+    body { background: #02030a; color: white; overflow: hidden; font-family: Georgia, 'Times New Roman', serif; }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    main { position: relative; z-index: 1; min-height: 100svh; display: grid; place-items: center; padding: 2rem; pointer-events: none; }
+    p { margin: 0; max-width: 900px; text-align: center; font-size: clamp(1.25rem, 3.1vw, 2.7rem); font-weight: 400; line-height: 1.65; letter-spacing: .035em; color: rgba(255,255,255,.5); text-wrap: balance; }
+    @media (prefers-reduced-motion: reduce) { canvas { opacity: .95; } }
+  </style>
+</head>
+<body>
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <main><p>Hope you become everything you wish to be, and more</p></main>
+  <script>
+    (() => {
+      const canvas = document.getElementById('sky');
+      const ctx = canvas.getContext('2d');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let stars = [], width = 0, height = 0, dpr = 1;
+      function random(seed) { let x = Math.sin(seed * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+      function resize() {
+        width = innerWidth; height = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const count = Math.min(1100, Math.max(230, Math.round(width * height / 1400)));
+        stars = Array.from({ length: count }, (_, i) => ({
+          x: random(i + 1) * width, y: random(i + 9001) * height,
+          radius: .35 + Math.pow(random(i + 19001), 5) * 1.65,
+          alpha: .18 + random(i + 29001) * .68,
+          phase: random(i + 39001) * Math.PI * 2,
+          speed: .25 + random(i + 49001) * 1.2
+        }));
+      }
+      function draw(time) {
+        ctx.clearRect(0, 0, width, height);
+        const t = time * .001;
+        for (const s of stars) {
+          const twinkle = reduceMotion ? 1 : .82 + .18 * Math.sin(t * s.speed + s.phase);
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(235,241,255,${s.alpha * twinkle})`; ctx.fill();
+        }
+        if (!reduceMotion) requestAnimationFrame(draw);
+      }
+      addEventListener('resize', () => { resize(); if (reduceMotion) draw(0); });
+      resize(); requestAnimationFrame(draw);
+    })();
+  </script>
+</body>
+</html>
